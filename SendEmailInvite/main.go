@@ -13,11 +13,11 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/structpb"
 
-	"github.com/hillside-labs/userservice/rpc/userapi"
+	"github.com/hillside-labs/userservice-go-sdk/pkg/userapi"
 )
 
 func main() {
-	dburi := os.Getenv("USERSERVICE_URI")
+	addr := os.Getenv("USERSERVICE_URI")
 	smtpPassword := os.Getenv("USERSERVICE_SMTP_PASSWORD")
 	smtpUsername := os.Getenv("USERSERVICE_SMTP_SENDEREMAIL")
 	email := os.Getenv("USERSERVICE_EMAIL")
@@ -28,7 +28,7 @@ func main() {
 		},
 	}
 
-	client, conn, err := GetUserClient(dburi)
+	client, conn, err := GetUserClient(addr)
 	if err != nil {
 		log.Fatal(err)
 		return

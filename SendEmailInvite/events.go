@@ -4,8 +4,9 @@ import (
 	"context"
 
 	"github.com/google/uuid"
-	"github.com/hillside-labs/userservice/rpc/userapi"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/hillside-labs/userservice-go-sdk/pkg/userapi"
 )
 
 type EventLoggerConfig struct {
@@ -22,7 +23,7 @@ type InviteUserEvent struct {
 	From  string
 }
 
-func (e EventLogger) LogEvent(ctx context.Context, client userapi.UsersClient, userId uint64, dataType string, schema string, subject string,dataContentType string, data []byte) (*userapi.EventResponse, error) {
+func (e EventLogger) LogEvent(ctx context.Context, client userapi.UsersClient, userId uint64, dataType string, schema string, subject string, dataContentType string, data []byte) (*userapi.EventResponse, error) {
 	event := &userapi.Event{
 		UserId:          userId,
 		Source:          e.config.Source,
@@ -32,8 +33,8 @@ func (e EventLogger) LogEvent(ctx context.Context, client userapi.UsersClient, u
 		Timestamp:       timestamppb.Now(),
 		Id:              uuid.New().String(),
 		Datacontenttype: dataContentType,
-		Subject: subject,
-		Dataschema: schema,
+		Subject:         subject,
+		Dataschema:      schema,
 	}
 	return client.LogEvent(context.Background(), &userapi.EventRequest{
 		Event: event,

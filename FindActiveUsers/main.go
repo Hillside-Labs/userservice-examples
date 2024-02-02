@@ -12,15 +12,15 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/structpb"
 
-	"github.com/hillside-labs/userservice/rpc/userapi"
+	"github.com/hillside-labs/userservice-go-sdk/pkg/userapi"
 )
 
 // Find users that have a `last_active` attribute that is older than `days` ago.
 func main() {
 	inactive, _ := strconv.Atoi(os.Getenv("days"))
-	dburi := os.Getenv("dburi")
+	addr := os.Getenv("userservice_uri")
 
-	client, conn, err := GetUserClient(dburi)
+	client, conn, err := GetUserClient(addr)
 	if err != nil {
 		log.Fatal(err)
 		return
@@ -33,8 +33,8 @@ func main() {
 	}
 
 	attrFilter := userapi.AttributeFilter{
-		Name: "last_active",
-		Value: timeVal,
+		Name:     "last_active",
+		Value:    timeVal,
 		Operator: userapi.Operator_LESS_THAN,
 	}
 
@@ -43,7 +43,7 @@ func main() {
 	}
 
 	q := &userapi.UserQuery{
-		OrderBy:    "username",
+		OrderBy:          "username",
 		AttributeFilters: []*userapi.AttributeFilter{&attrFilter},
 	}
 
