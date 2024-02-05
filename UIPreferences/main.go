@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"os"
 	"strconv"
@@ -11,7 +10,6 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-// bulk setting?
 func main() {
 	userid, _ := strconv.ParseUint(os.Getenv("userid"), 10, 64)
 	addr := os.Getenv("userservice_uri")
