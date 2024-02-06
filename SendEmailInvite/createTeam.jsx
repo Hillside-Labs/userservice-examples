@@ -1,5 +1,5 @@
 /* 
-    Example using our smaple form for creating a team and embedding it.
+    Example using our sample form for creating a team and embedding it.
     /api/teams/new/form returns html with the form.
     You can always send your own form and POST it to /api/teams/new/form.
  */
