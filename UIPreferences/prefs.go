@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 
+	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/hillside-labs/userservice-go-sdk/pkg/userapi"
-	"google.golang.org/protobuf/types/known/structpb"
 )
 
 type Prefs struct {
@@ -29,18 +30,19 @@ type CacheConfig struct {
 
 func SavePreferences(userid uint64, client userapi.UsersClient, prefs Prefs) (*userapi.UserResponse, error) {
 	ctx := context.Background()
-	
-    resp, err := client.Get(ctx, &userapi.UserRequest{
-		Id: userid,
-	})
-	if err != nil {
-		return nil, err
+
+	prefsJson, _ := json.Marshal(prefs)
+
+	prefsStruct := &structpb.Struct{
+		Fields: map[string]*structpb.Value{
+			"uiPreferences": {
+				Kind: &structpb.Value_StringValue{
+					StringValue: string(prefsJson),
+				},
+			},
+		},
 	}
 
-	attrMap := resp.Attributes.AsMap()
-	attrMap["ui_preferences"] = prefs
-	attrs, _ := structpb.NewStruct(attrMap)
-	
-    resp, err = client.Update(ctx, &userapi.UserRequest{Attributes: attrs})
+	resp, err := client.Update(ctx, &userapi.UserRequest{Id: userid, Attributes: prefsStruct})
 	return resp, err
 }
