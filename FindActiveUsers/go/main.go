@@ -8,9 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-
 	userup "github.com/hillside-labs/userservice-go-sdk/go-client"
 	"github.com/hillside-labs/userservice-go-sdk/pkg/userapi"
 )
@@ -38,13 +35,4 @@ func main() {
 	for _, user := range users {
 		fmt.Println(user.Id)
 	}
-}
-
-func GetUserClient(dburi string) (userapi.UsersClient, *grpc.ClientConn, error) {
-	conn, err := grpc.Dial(dburi, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, nil, err
-	}
-	client := userapi.NewUsersClient(conn)
-	return client, conn, nil
 }
