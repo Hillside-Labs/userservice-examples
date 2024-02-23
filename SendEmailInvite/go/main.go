@@ -2,18 +2,13 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/smtp"
 	"os"
 	"strconv"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/protobuf/types/known/structpb"
-
-	"github.com/hillside-labs/userservice-go-sdk/pkg/userapi"
+	userup "github.com/hillside-labs/userservice-go-sdk/go-client"
 )
 
 func main() {
@@ -21,62 +16,33 @@ func main() {
 	smtpPassword := os.Getenv("USERSERVICE_SMTP_PASSWORD")
 	smtpUsername := os.Getenv("USERSERVICE_SMTP_SENDEREMAIL")
 	email := os.Getenv("USERSERVICE_EMAIL")
-	el := EventLogger{
-		config: EventLoggerConfig{
-			Source:      "userservice/cmd/democlient/invite",
-			SpecVersion: "1.0.0",
-		},
-	}
 
-	client, conn, err := GetUserClient(addr)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	defer conn.Close()
-
-	userResponse, err := CreateInviteUser(client, email, smtpUsername)
+	client, err := userup.NewClient(addr)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer client.Close()
 
-	payload := &InviteUserEvent{
-		Email: email,
-		From:  smtpUsername,
-	}
+	logger := userup.NewLogger(userup.NewLoggerConfig("https://github.com/hillside-labs/userservice-examples/SendEmailInviteClient/go", client))
 
-	payloadBytes, _ := json.Marshal(payload)
-
-	el.LogEvent(context.Background(),
-		client,
-		userResponse.Id,
-		"userup.io/example/invite",
-		"application/json",
-		strconv.FormatUint(userResponse.Id, 10),
-		"InviteUserEvent",
-		payloadBytes)
-
-	SendEmail(email, smtpUsername, smtpPassword, "Invite User", "You are invided to userup.io")
-}
-
-func CreateInviteUser(client userapi.UsersClient, email string, from string) (*userapi.UserResponse, error) {
-	attr, err := structpb.NewStruct(
-		map[string]interface{}{
+	user, err := client.AddUser(context.Background(), &userup.User{
+		Username: email,
+		Attributes: map[string]interface{}{
 			"status": "pending",
 		},
-	)
+	})
 	if err != nil {
-		return nil, err
+		log.Panicf("Error creating user: %v", err)
 	}
 
-	userResponse, err := client.Create(context.Background(), &userapi.NewUser{
-		Username:   email,
-		Attributes: attr})
-	if err != nil {
-		return nil, err
-	}
+	logger.LogEvent(context.Background(),
+		user.Id,
+		"InviteUserEvent",
+		"userup.io/example/invite",
+		strconv.FormatUint(user.Id, 10),
+		user)
 
-	return userResponse, nil
+	SendEmail(email, smtpUsername, smtpPassword, "Invite User", "You are invited to userup.io")
 }
 
 func SendEmail(toEmail, username, password, subject, body string) error {
@@ -87,13 +53,4 @@ func SendEmail(toEmail, username, password, subject, body string) error {
 		[]string{toEmail},
 		[]byte(fmt.Sprintf("Subject: %s\n\n%s", subject, body)),
 	)
-}
-
-func GetUserClient(dburi string) (userapi.UsersClient, *grpc.ClientConn, error) {
-	conn, err := grpc.Dial(dburi, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, nil, err
-	}
-	client := userapi.NewUsersClient(conn)
-	return client, conn, nil
 }
