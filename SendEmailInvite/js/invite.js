@@ -1,4 +1,4 @@
-const { Configuration, DefaultApi} = require('userservice-js-sdk/dist')
+const { Configuration, DefaultApi } = require('userservice-js-sdk')
 const nodemailer = require('nodemailer')
 require('dotenv').config()
 
