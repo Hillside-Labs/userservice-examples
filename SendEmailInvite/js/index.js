@@ -6,12 +6,12 @@ async function main() {
     const smtpPassword = process.env.USERSERVICE_SMTP_PASSWORD
     const smtpUsername = process.env.USERSERVICE_SMTP_SENDEREMAIL
     const email = process.env.USERSERVICE_EMAIL
-    
+
     const API_BASE_PATH = 'http://localhost:9001/api'
-    
+
     const config = new Configuration({basePath: API_BASE_PATH})
     const api = new DefaultApi(config)
-    
+
     try {
         const user = await api.createUser({
             user: {
@@ -21,7 +21,7 @@ async function main() {
                 },
             }
         })
-        
+
         api.createEvent({
             id: user.iD,
             event: {
@@ -34,7 +34,7 @@ async function main() {
                 data: user
             }
         })
-        
+
         await sendEmail(email, smtpUsername, smtpPassword, 'Invite User', 'You are invited to userup.io')
     } catch (error) {
         if (error.response) {
@@ -58,14 +58,14 @@ async function sendEmail(toEmail, username, password, subject, body) {
             pass: password,
         },
     })
-    
+
     let info = await transporter.sendMail({
         from: username,
         to: toEmail,
         subject: subject,
         text: body,
     })
-    
+
     console.log('Message sent: %s', info.messageId)
 }
 
